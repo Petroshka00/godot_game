@@ -1,0 +1,169 @@
+[gd_scene load_steps=26 format=3 uid="uid://c1xek44t331e1"]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1_t5sxu"]
+[ext_resource type="Texture2D" uid="uid://d02kf8tfwut5r" path="res://assets/sprites/coso.png" id="2_47tnl"]
+[ext_resource type="Texture2D" uid="uid://dxpt06ux0q7si" path="res://assets/sprites/slime-buildup.png" id="2_ovm8r"]
+[ext_resource type="Texture2D" uid="uid://ctmgo0ao2e18b" path="res://assets/sprites/slime_idle.png" id="3_a4ptp"]
+[ext_resource type="PackedScene" uid="uid://b8wnqyqboch24" path="res://scenes/move_state_machine.tscn" id="4_6ohas"]
+[ext_resource type="PackedScene" uid="uid://cgi8i6a1hf18h" path="res://scenes/health_component.tscn" id="5_rpt03"]
+[ext_resource type="PackedScene" uid="uid://cnyqwiwl70beh" path="res://scenes/hurtbox_component.tscn" id="6_66dtv"]
+[ext_resource type="PackedScene" uid="uid://col5pr30oo6sn" path="res://scenes/damage_component.tscn" id="6_dltx2"]
+[ext_resource type="PackedScene" uid="uid://nqnvl5hsmqqe" path="res://scenes/hitbox_component.tscn" id="7_82237"]
+[ext_resource type="Script" path="res://scripts/states/Slime/SlimeIdle1.gd" id="10_iobvt"]
+[ext_resource type="Script" path="res://scripts/states/Slime/SlimeFollow1.gd" id="11_dkd0s"]
+[ext_resource type="Script" path="res://scripts/states/Slime/SlimeBuildup1.gd" id="12_wir0j"]
+[ext_resource type="Script" path="res://scripts/states/Slime/SlimeAttack1.gd" id="13_287wu"]
+[ext_resource type="PackedScene" uid="uid://d1d8vjk1qmy3g" path="res://scenes/charge_enemy_comp.tscn" id="14_6qj1p"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_fl2x6"]
+radius = 5.0
+height = 14.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0tmbn"]
+atlas = ExtResource("2_47tnl")
+region = Rect2(60, 0, 30, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_65ysw"]
+atlas = ExtResource("3_a4ptp")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lbn41"]
+atlas = ExtResource("2_ovm8r")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5l664"]
+atlas = ExtResource("2_ovm8r")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tuy2t"]
+atlas = ExtResource("2_ovm8r")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i0uoe"]
+atlas = ExtResource("3_a4ptp")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h0flc"]
+atlas = ExtResource("3_a4ptp")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_y1kwj"]
+animations = [{
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_0tmbn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_65ysw")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lbn41")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5l664")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tuy2t")
+}],
+"loop": false,
+"name": &"buildup",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i0uoe")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h0flc")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 3.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_x6xjy"]
+radius = 6.0
+height = 18.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_oyfn7"]
+radius = 5.0
+height = 14.0
+
+[node name="Slime" type="CharacterBody2D"]
+collision_layer = 0
+motion_mode = 1
+script = ExtResource("1_t5sxu")
+
+[node name="WorldCollision" type="CollisionShape2D" parent="."]
+rotation = 1.57079
+shape = SubResource("CapsuleShape2D_fl2x6")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -2)
+sprite_frames = SubResource("SpriteFrames_y1kwj")
+animation = &"attack"
+frame = 1
+frame_progress = 1.0
+
+[node name="HealthComponent" parent="." instance=ExtResource("5_rpt03")]
+
+[node name="DamageComponent" parent="." instance=ExtResource("6_dltx2")]
+
+[node name="HurtboxComponent" parent="." node_paths=PackedStringArray("health_component") instance=ExtResource("6_66dtv")]
+collision_layer = 0
+collision_mask = 2
+health_component = NodePath("../HealthComponent")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtboxComponent"]
+position = Vector2(0, 1)
+rotation = 1.57079
+shape = SubResource("CapsuleShape2D_x6xjy")
+
+[node name="HitboxComponent" parent="." node_paths=PackedStringArray("damage_component") instance=ExtResource("7_82237")]
+collision_layer = 4
+collision_mask = 0
+damage_component = NodePath("../DamageComponent")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxComponent"]
+position = Vector2(0, 1)
+rotation = 1.57079
+shape = SubResource("CapsuleShape2D_oyfn7")
+
+[node name="Move State Machine" parent="." node_paths=PackedStringArray("initial_state") instance=ExtResource("4_6ohas")]
+initial_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="Move State Machine" node_paths=PackedStringArray("idle_state", "follow_state")]
+script = ExtResource("10_iobvt")
+idle_state = NodePath(".")
+follow_state = NodePath("../Follow")
+state_name = "Idle"
+animation_name = "idle"
+
+[node name="Follow" type="Node" parent="Move State Machine" node_paths=PackedStringArray("idle_state", "buildup_state")]
+script = ExtResource("11_dkd0s")
+idle_state = NodePath("../Idle")
+buildup_state = NodePath("../Buildup")
+state_name = "Follow"
+animation_name = "idle"
+
+[node name="Buildup" type="Node" parent="Move State Machine" node_paths=PackedStringArray("follow_state", "attack_state")]
+script = ExtResource("12_wir0j")
+follow_state = NodePath("../Follow")
+attack_state = NodePath("../Attack")
+state_name = "Buildup"
+animation_name = "buildup"
+
+[node name="Attack" type="Node" parent="Move State Machine" node_paths=PackedStringArray("idle_state", "follow_state")]
+script = ExtResource("13_287wu")
+idle_state = NodePath("../Idle")
+follow_state = NodePath("../Follow")
+state_name = "Attack"
+animation_name = "attack"
+
+[node name="ChargeEnemyComp" parent="." node_paths=PackedStringArray("enemy") instance=ExtResource("14_6qj1p")]
+enemy = NodePath("..")

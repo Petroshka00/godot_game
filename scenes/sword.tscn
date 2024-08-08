@@ -1,0 +1,103 @@
+[gd_scene load_steps=14 format=3 uid="uid://p0pkt1uqb4sd"]
+
+[ext_resource type="Script" path="res://scripts/Sword.gd" id="1_8wkma"]
+[ext_resource type="Texture2D" uid="uid://oeuiv1mi8j8x" path="res://assets/sprites/espadita.png" id="3_1jc3t"]
+[ext_resource type="PackedScene" uid="uid://nqnvl5hsmqqe" path="res://scenes/hitbox_component.tscn" id="3_t23vc"]
+[ext_resource type="Script" path="res://scripts/Components/DamageComponent.gd" id="4_3baa1"]
+[ext_resource type="PackedScene" uid="uid://bcjlm7nqpu6w8" path="res://scenes/base_state_machine.tscn" id="5_uej72"]
+[ext_resource type="Script" path="res://scripts/states/Weapon State Machine.gd" id="6_axyi1"]
+[ext_resource type="Script" path="res://scenes/SwordIdle.gd" id="6_r2ahx"]
+[ext_resource type="Script" path="res://scenes/SwordAttack.gd" id="7_07enc"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_bs8wc"]
+radius = 3.53553
+height = 12.7279
+
+[sub_resource type="Animation" id="Animation_umdeg"]
+resource_name = "attack"
+length = 0.2
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Pivot:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.05, 0.1, 0.15),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 0.523599, 1.0472, 1.5708]
+}
+
+[sub_resource type="Animation" id="Animation_7snh2"]
+resource_name = "idle"
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+
+[sub_resource type="Animation" id="Animation_gxeb1"]
+resource_name = "new_animation"
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_fd0s8"]
+_data = {
+"attack": SubResource("Animation_umdeg"),
+"idle": SubResource("Animation_7snh2"),
+"new_animation": SubResource("Animation_gxeb1")
+}
+
+[node name="Sword" type="Node2D" groups=["Weapons"]]
+script = ExtResource("1_8wkma")
+
+[node name="Pivot" type="Marker2D" parent="."]
+position = Vector2(7, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="Pivot"]
+position = Vector2(4, -5)
+texture = ExtResource("3_1jc3t")
+
+[node name="HitboxComponent" parent="Pivot" node_paths=PackedStringArray("damage_component") instance=ExtResource("3_t23vc")]
+collision_layer = 0
+collision_mask = 0
+damage_component = NodePath("../../DamageComponent")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Pivot/HitboxComponent"]
+position = Vector2(5, -5)
+rotation = 0.785398
+shape = SubResource("CapsuleShape2D_bs8wc")
+
+[node name="DamageComponent" type="Node2D" parent="."]
+script = ExtResource("4_3baa1")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_fd0s8")
+}
+
+[node name="State Machine" parent="." node_paths=PackedStringArray("initial_state") instance=ExtResource("5_uej72")]
+script = ExtResource("6_axyi1")
+initial_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="State Machine" node_paths=PackedStringArray("idle_state", "attack_state")]
+script = ExtResource("6_r2ahx")
+idle_state = NodePath(".")
+attack_state = NodePath("../Attack")
+state_name = "Idle"
+animation_name = "idle"
+
+[node name="Attack" type="Node" parent="State Machine" node_paths=PackedStringArray("idle_state", "attack_state")]
+script = ExtResource("7_07enc")
+idle_state = NodePath("../Idle")
+attack_state = NodePath(".")
+state_name = "Attack"
+animation_name = "attack"

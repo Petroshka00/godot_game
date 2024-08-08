@@ -1,0 +1,122 @@
+[gd_scene load_steps=20 format=3 uid="uid://bw83glv707nn3"]
+
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_mv1ky"]
+[ext_resource type="Texture2D" uid="uid://cnb8dlacfvu2s" path="res://assets/sprites/idle.png" id="1_s2aox"]
+[ext_resource type="Texture2D" uid="uid://cwvvuiydl8ic5" path="res://assets/sprites/rollfeo.png" id="2_d654e"]
+[ext_resource type="PackedScene" uid="uid://cgi8i6a1hf18h" path="res://scenes/health_component.tscn" id="4_c4yo8"]
+[ext_resource type="PackedScene" uid="uid://cnyqwiwl70beh" path="res://scenes/hurtbox_component.tscn" id="5_al42r"]
+[ext_resource type="PackedScene" uid="uid://b8wnqyqboch24" path="res://scenes/move_state_machine.tscn" id="5_mbyhx"]
+[ext_resource type="Script" path="res://scripts/states/Player/PlayerIdle.gd" id="6_s8hv0"]
+[ext_resource type="Script" path="res://scripts/states/Player/PlayerMove.gd" id="7_qrprs"]
+[ext_resource type="Script" path="res://scripts/states/Player/PlayerAttack.gd" id="8_ijfap"]
+[ext_resource type="Script" path="res://scripts/states/Player/PlayerDodge.gd" id="9_l1b3r"]
+[ext_resource type="PackedScene" uid="uid://dbedvjpu4ytmc" path="res://scenes/player_move_component.tscn" id="11_7p3tr"]
+[ext_resource type="PackedScene" uid="uid://p0pkt1uqb4sd" path="res://scenes/sword.tscn" id="14_lgsjm"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_wwb4i"]
+radius = 4.0
+height = 16.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_34by1"]
+atlas = ExtResource("2_d654e")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mpjid"]
+atlas = ExtResource("2_d654e")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_smdwx"]
+atlas = ExtResource("1_s2aox")
+region = Rect2(0, 0, 13, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hjhns"]
+atlas = ExtResource("1_s2aox")
+region = Rect2(13, 0, 13, 20)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_adj3m"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_34by1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mpjid")
+}],
+"loop": false,
+"name": &"dodge",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_smdwx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hjhns")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 4.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_bmbph"]
+radius = 5.0
+height = 18.0
+
+[node name="Player" type="CharacterBody2D" groups=["Player"]]
+collision_layer = 0
+motion_mode = 1
+platform_wall_layers = 1
+script = ExtResource("1_mv1ky")
+
+[node name="WorldCollision" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_wwb4i")
+
+[node name="Animations" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -1)
+sprite_frames = SubResource("SpriteFrames_adj3m")
+animation = &"idle"
+
+[node name="HealthComponent" parent="." instance=ExtResource("4_c4yo8")]
+
+[node name="HurtboxComponent" parent="." node_paths=PackedStringArray("health_component") instance=ExtResource("5_al42r")]
+collision_layer = 0
+collision_mask = 0
+health_component = NodePath("../HealthComponent")
+
+[node name="HurtboxArea" type="CollisionShape2D" parent="HurtboxComponent"]
+shape = SubResource("CapsuleShape2D_bmbph")
+
+[node name="Move SM" parent="." node_paths=PackedStringArray("initial_state") instance=ExtResource("5_mbyhx")]
+initial_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="Move SM" node_paths=PackedStringArray("move_state", "dodge_state", "player")]
+script = ExtResource("6_s8hv0")
+move_state = NodePath("../Move")
+dodge_state = NodePath("../Dodge")
+player = NodePath("../..")
+state_name = "Idle"
+animation_name = "idle"
+
+[node name="Move" type="Node" parent="Move SM" node_paths=PackedStringArray("idle_state", "dodge_state")]
+script = ExtResource("7_qrprs")
+idle_state = NodePath("../Idle")
+dodge_state = NodePath("../Dodge")
+state_name = "Move"
+animation_name = "idle"
+
+[node name="Attack" type="Node" parent="Move SM"]
+script = ExtResource("8_ijfap")
+state_name = "Attack"
+animation_name = "attack"
+
+[node name="Dodge" type="Node" parent="Move SM" node_paths=PackedStringArray("idle_state", "move_state", "player")]
+script = ExtResource("9_l1b3r")
+idle_state = NodePath("../Idle")
+move_state = NodePath("../Move")
+player = NodePath("../..")
+state_name = "Dodge"
+animation_name = "dodge"
+
+[node name="MoveComponent" parent="." instance=ExtResource("11_7p3tr")]
+
+[node name="Sword" parent="." instance=ExtResource("14_lgsjm")]
