@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://d1d8vjk1qmy3g"]
-
-[ext_resource type="Script" path="res://scripts/Components/ChargeEnemyComp.gd" id="1_4vbv7"]
-
-[node name="MoveComponent" type="Node"]
-script = ExtResource("1_4vbv7")

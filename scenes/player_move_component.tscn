@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://dbedvjpu4ytmc"]
-
-[ext_resource type="Script" path="res://scripts/Components/PlayerMoveComponent.gd" id="1_a2kwp"]
-
-[node name="MoveComponent" type="Node" node_paths=PackedStringArray("player")]
-script = ExtResource("1_a2kwp")
-player = NodePath("")
